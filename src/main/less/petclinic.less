@@ -13,6 +13,11 @@
  */
 @icon-font-path:    "../../webjars/bootstrap/fonts/";
 
+@import "../../webjars/bootstrap/less/variables.less";
+@import "../../webjars/bootstrap/less/mixins.less";
+@import "../../webjars/bootstrap/less/labels.less";
+
+
 @spring-green:      #6db33f;
 @spring-dark-green: #5fa134;
 @spring-brown:      #34302D;
@@ -178,20 +183,22 @@ table td.action-column {
 }
 
 .deployment-status-deployed {
-  .label-success;
+  &:extend(.label-success all);
 }
 
 .deployment-status-incomplete {
-  .label-warning;
+  &:extend(.label-warning all);
 }
 
+
 .deployment-status-failed {
-  .label-danger;
+  &:extend(.label-danger all);
 }
 
 .deployment-status-deploying {
-  .label-info
+  &:extend(.label-info all);
 }
+
 .deployment-status-na {
 }
 
@@ -205,17 +212,38 @@ table td.action-column {
 }
 
 .alert-success {
-  .alert-variant(fade(@alert-success-bg, 70%); @alert-success-border; @alert-success-text);
+  background-color: fade(#dff0d8, 70%);
+  border-color: #d6e9c6;
+  color: #3c763d;
 }
+.alert-success hr { border-top-color: darken(#d6e9c6, 5%); }
+.alert-success .alert-link { color: darken(#3c763d, 10%); }
+
 .alert-info {
-  .alert-variant(fade(@alert-info-bg, 70%); @alert-info-border; @alert-info-text);
+  background-color: fade(#d9edf7, 70%);
+  border-color: #bce8f1;
+  color: #31708f;
 }
+.alert-info hr { border-top-color: darken(#bce8f1, 5%); }
+.alert-info .alert-link { color: darken(#31708f, 10%); }
+
 .alert-warning {
-  .alert-variant(fade(@alert-warning-bg, 70%); @alert-warning-border; @alert-warning-text);
+  background-color: fade(#fcf8e3, 70%);
+  border-color: #faebcc;
+  color: #8a6d3b;
 }
+.alert-warning hr { border-top-color: darken(#faebcc, 5%); }
+.alert-warning .alert-link { color: darken(#8a6d3b, 10%); }
+
 .alert-danger {
-  .alert-variant(fade(@alert-danger-bg, 70%); @alert-danger-border; @alert-danger-text);
+  background-color: fade(#f2dede, 70%);
+  border-color: #ebccd1;
+  color: #a94442;
 }
+.alert-danger hr { border-top-color: darken(#ebccd1, 5%); }
+.alert-danger .alert-link { color: darken(#a94442, 10%); }
+
+
 
 .myspinner {
   animation-name: spinner;
