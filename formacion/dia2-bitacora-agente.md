@@ -12,3 +12,23 @@
 | **Tiempos** | **Análisis:** 10 min estimado <br>**Cambio:** 5 min estimado <br>**Verificación:** 5 min estimado <br>**PR y cierre:** 10 min estimado <br>**(Añadir también los tiempos del Lab 5):** No aplica |
 | **Consumo** | No disponible |
 | **Conclusión** | 1) El cambio mínimo en `pom.xml` es suficiente para abordar la alerta indicada. <br>2) Mantener la bitácora actualizada por hitos mejora la trazabilidad del trabajo. <br>3) Verificar antes de abrir la PR reduce el riesgo de propagar un cambio incorrecto. |
+
+
+## Evidencias / Entregables
+
+- PR Lab 5 (mergeada): https://github.com/carlosochaitachimeno/resiliencia-practicas/pull/2
+- PR Lab 8 (mergeada): https://github.com/carlosochaitachimeno/resiliencia-practicas/pull/4
+
+
+
+## Lab 6 · Secretos — Respuesta
+
+1) **¿Por qué el segundo escaneo sigue encontrando el secreto?**  
+Porque el secreto quedó registrado en el historial de Git (en el commit donde se añadió y/o en los diffs). Aunque se borre el archivo en un commit posterior, el contenido sigue existiendo en commits anteriores, y gitleaks escanea el historial.
+
+2) **¿Por qué borrarlo no basta y quién tiene que rotarlo?**  
+Borrarlo del último commit no basta porque cualquiera con acceso al repositorio puede recuperar el secreto desde el historial. Al haberse expuesto, hay que rotar/revocar el secreto. La rotación la hace el propietario del secreto en el sistema que lo emite (AWS/GitHub/proveedor), no Git.
+
+3) **¿Qué cambiarías para que no vuelva a pasar?**  
+- Usar un gestor de secretos o variables de entorno (no almacenar credenciales en el repositorio; como mucho un archivo `.example` sin secretos).  
+- Añadir una regla antes del commit (pre-commit hook) para ejecutar gitleaks y bloquear commits si detecta secretos.
