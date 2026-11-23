@@ -129,6 +129,34 @@
 - El lockfile es clave para obtener un reporte fiable; sin lockfile, los resultados pueden ser **engañosos** (infravaloran o no reflejan el riesgo real).
 
 
+## Lab 2 — Paso 4: Dónde se corrige
+
+**Aviso elegido (transitiva):** `braces` (`braces@2.3.2`)
+
+**Quién la trae (npm ls):**
+- `jest@26.6.3 -> @jest/core -> jest-haste-map -> sane@4.1.0 -> micromatch@3.1.10 -> braces@2.3.2`
+
+**Corrección elegida (regla del proyecto):** corregir en el origen
+- En vez de usar `overrides` para forzar `braces`, actualizar la dependencia directa que lo introduce (**`jest`**, y alinear `ts-jest` si aplica) a una versión que ya no arrastre esa rama antigua.
+
+**Por qué:**
+- `overrides` deja deuda y puede romper en ejecución; actualizar el origen es más mantenible.
+
+
+## Lab 3 — SAST sobre WebGoat 
+
+| # | check_id | path | severity | clasificación | justificación (1 línea) |
+|---|----------|------|----------|---------------|--------------------------|
+| 1 | java.lang.security.audit.formatted-sql-string.formatted-sql-string | src/main/java/org/owasp/webgoat/lessons/challenges/challenge5/Assignment5.java | ERROR | Código que no se despliega (demo/lesson) | WebGoat es una app de entrenamiento y este código está en `lessons/challenges`, diseñado para ser vulnerable. |
+| 2 | yaml.github-actions.security.github-actions-mutable-action-tag.github-actions-mutable-action-tag | .github/workflows/build.yml | WARNING | Real | Usar tags/branches mutables en GitHub Actions es un riesgo real de supply-chain; se debería fijar a un commit SHA. |
+| 3 | java.spring.security.injection.tainted-url-host.tainted-url-host | src/main/java/org/owasp/webgoat/lessons/jwt/claimmisuse/JWTHeaderJKUEndpoint.java | ERROR | Código que no se despliega (demo/lesson) | Está en `lessons/jwt/...` y forma parte de un ejercicio didáctico, no de una funcionalidad “productiva”. |
+| 4 | java.lang.security.audit.formatted-sql-string.formatted-sql-string | src/main/java/org/owasp/webgoat/lessons/sqlinjection/introduction/SqlInjectionLesson8.java | ERROR | Código que no se despliega (demo/lesson) | Está en `lessons/sqlinjection/...` y el objetivo del proyecto es mostrar SQLi de forma intencionada. |
+| 5 | yaml.github-actions.security.github-actions-mutable-action-tag.github-actions-mutable-action-tag | .github/workflows/release.yml | WARNING | Real | Mismo problema: acción referenciada por tag mutable; fijar a SHA reduce el riesgo de cambios maliciosos. |
+
+
+
+
+
 
 
 
