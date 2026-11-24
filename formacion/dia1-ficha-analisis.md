@@ -144,6 +144,7 @@
 - `overrides` deja deuda y puede romper en ejecución; actualizar el origen es más mantenible.
 
 
+
 **Aviso elegido (transitiva):** `zod` (GHSA-mrhx-c7xc-m3w5, `zod@3.25.76`)
 
 **Quién la trae (npm ls):**
