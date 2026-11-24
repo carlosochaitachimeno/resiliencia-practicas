@@ -5,8 +5,9 @@
 |CVE-2025-24813  | org.apache.tomcat.embed:tomcat-embed-core 9.0.41  |org.springframework.samples:spring-petclinic:jar:2.4.0.BUILD-SNAPSHOT → \- org.springframework.boot:spring-boot-starter-web:jar:2.4.1:compile → \- org.springframework.boot:spring-boot-starter-tomcat:jar:2.4.1:compile → \- org.apache.tomcat.embed:tomcat-embed-core:jar:9.0.41:compile  |Producción  |Sí  |Subir la transitiva a 9.0.99  |La nueva versión corrige el CVE  |
 |CVE-2025-48988  |org.apache.tomcat.embed:tomcat-embed-core 9.0.99 |org.springframework.samples:spring-petclinic:jar:2.4.0.BUILD-SNAPSHOT → \- org.springframework.boot:spring-boot-starter-web:jar:2.4.2:compile → \- org.springframework.boot:spring-boot-starter-tomcat:jar:2.4.2:compile → \- org.apache.tomcat.embed:tomcat-embed-core:jar:9.0.99:compile  |Producción  |Sí  |Subir la propiedad a 9.0.106 y sobreescribir la versión del BOM  |La nueva versión corrige el CVE.  |
 |CVE-2025-52434  |org.apache.tomcat.embed:tomcat-embed-core 9.0.106 |org.springframework.samples:spring-petclinic:jar:2.4.0.BUILD-SNAPSHOT → \- org.springframework.boot:spring-boot-starter-web:jar:2.4.2:compile →  \- org.springframework.boot:spring-boot-starter-tomcat:jar:2.4.2:compile → \- org.apache.tomcat.embed:tomcat-embed-core:jar:9.0.106:compile  |Producción  |Sí  |Subir la propiedad a 9.0.107 y sobreescribir la versión del BOM  | La nueva versión corrige el CVE  |
-|CVE-2024-4068  |braces 2.3.2  |juice-shop -> jest@26.6.3 -> @jest/core@26.6.3 -> @jest/transform@26.6.2 -> micromatch@4.0.8 -> braces@3.0.3  |Producción  |Sí  |  |  |
-|  |  |  |  |  |  |  |
+|CVE-2024-4068  |braces@2.3.2 |jest@26.6.3 → @jest/core → jest-haste-map → sane@4.1.0 → micromatch@3.1.10 → braces@2.3.2  |Desarrollo   |No  |Subir la dependencia directa jest y ts-jest si aplica a una versión que ya no arrastre braces@2.3.2  |La nueva versión elimina la dependencia vulnerable desde el origen, sin usar overrides |
+|GHSA-mrhx-c7xc-m3w5  |zod@3.25.76  |juice-shop → web3@4.16.0 → web3-validator@2.0.6 → zod@3.25.76  |Producción  |Sí  |Actualizar web3 o web3-validator a una versión que ya use zod ≥ 4.6.6, en vez de forzarlo con overrides  |Porque así se actualiza de forma normal y se evita forzar versiones con overrides  |
+
 
 ## Vulnerabilidad 1: Apache Tomcat embebido (dependencia vulnerable)
 
@@ -141,6 +142,18 @@
 
 **Por qué:**
 - `overrides` deja deuda y puede romper en ejecución; actualizar el origen es más mantenible.
+
+
+**Aviso elegido (transitiva):** `zod` (GHSA-mrhx-c7xc-m3w5, `zod@3.25.76`)
+
+**Quién la trae (npm ls):**
+- `juice-shop -> web3@4.16.0 -> web3-validator@2.0.6 -> zod@3.25.76`
+
+**Corrección elegida (regla del proyecto):** corregir en el origen
+- En vez de usar `overrides` para forzar `zod`, actualizar la dependencia directa que lo introduce (**`web3`** y/o **`web3-validator`**) a una versión que ya use `zod >= 4.6.6`.
+
+**Por qué:**
+- Evita forzar versiones con `overrides`.
 
 
 ## Lab 3 — SAST sobre WebGoat 
