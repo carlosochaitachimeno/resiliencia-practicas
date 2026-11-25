@@ -2,88 +2,38 @@
  
 | Aviso (CVE o GHSA) | Componente y versión | Cadena de dependencia | Desarrollo o producción | ¿Llega a lo desplegado? | Corrección propuesta | Por qué |
 |---|---|---|---|---|---|---|
-|CVE-2025-24813  | org.apache.tomcat.embed:tomcat-embed-core 9.0.41  |org.springframework.samples:spring-petclinic:jar:2.4.0.BUILD-SNAPSHOT → \- org.springframework.boot:spring-boot-starter-web:jar:2.4.1:compile → \- org.springframework.boot:spring-boot-starter-tomcat:jar:2.4.1:compile → \- org.apache.tomcat.embed:tomcat-embed-core:jar:9.0.41:compile  |Producción  |Sí  |Subir la transitiva a 9.0.99  |La nueva versión corrige el CVE  |
-|CVE-2025-48988  |org.apache.tomcat.embed:tomcat-embed-core 9.0.99 |org.springframework.samples:spring-petclinic:jar:2.4.0.BUILD-SNAPSHOT → \- org.springframework.boot:spring-boot-starter-web:jar:2.4.2:compile → \- org.springframework.boot:spring-boot-starter-tomcat:jar:2.4.2:compile → \- org.apache.tomcat.embed:tomcat-embed-core:jar:9.0.99:compile  |Producción  |Sí  |Subir la propiedad a 9.0.106 y sobreescribir la versión del BOM  |La nueva versión corrige el CVE.  |
-|CVE-2025-52434  |org.apache.tomcat.embed:tomcat-embed-core 9.0.106 |org.springframework.samples:spring-petclinic:jar:2.4.0.BUILD-SNAPSHOT → \- org.springframework.boot:spring-boot-starter-web:jar:2.4.2:compile →  \- org.springframework.boot:spring-boot-starter-tomcat:jar:2.4.2:compile → \- org.apache.tomcat.embed:tomcat-embed-core:jar:9.0.106:compile  |Producción  |Sí  |Subir la propiedad a 9.0.107 y sobreescribir la versión del BOM  | La nueva versión corrige el CVE  |
+|CVE-2025-24813, CVE-2025-48988, CVE-2025-52434 | org.apache.tomcat.embed:tomcat-embed-core:9.0.124, org.apache.tomcat.embed:tomcat-embed-websocket:9.0.124 | spring-petclinic → spring-boot-starter-web:2.4.1 → spring-boot-starter-tomcat:2.4.1 → org.apache.tomcat.embed:*:9.0.124 | Producción | Sí | Fijar la propiedad tomcat.version a 9.0.124 en pom.xml (gestionada por el BOM Spring Boot) | Se evita corregir aviso a aviso y se salta directamente a la última 9.0.x estable, quedando Tomcat sin avisos en Trivy |
 |CVE-2024-4068  |braces@2.3.2 |jest@26.6.3 → @jest/core → jest-haste-map → sane@4.1.0 → micromatch@3.1.10 → braces@2.3.2  |Desarrollo   |No  |Subir la dependencia directa jest y ts-jest si aplica a una versión que ya no arrastre braces@2.3.2  |La nueva versión elimina la dependencia vulnerable desde el origen, sin usar overrides |
-|GHSA-mrhx-c7xc-m3w5  |zod@3.25.76  |juice-shop → web3@4.16.0 → web3-validator@2.0.6 → zod@3.25.76  |Producción  |Sí  |Actualizar web3 o web3-validator a una versión que ya use zod ≥ 4.6.6, en vez de forzarlo con overrides  |Porque así se actualiza de forma normal y se evita forzar versiones con overrides  |
+|GHSA-mrhx-c7xc-m3w5 | zod@3.25.76 | juice-shop → web3@4.16.0 → web3-validator@2.0.6 → zod@3.25.76 | Producción | Sí | Override documentado como excepción (forzar zod >= 4.6.6 con overrides) | npm view web3-validator version devuelve 2.0.6 y npm view web3-validator@2.0.6 dependencies declara zod: ^3.21.4 (Zod 3). No existe fix upstream (no hay versión que use Zod 4), así que se elige override temporal documentado como deuda técnica y se valida con audit/trivy/tests. |
 
 
-## Vulnerabilidad 1: Apache Tomcat embebido (dependencia vulnerable)
+## Vulnerabilidad : Apache Tomcat embebido (dependencia vulnerable)
 
-**Detección:** Trivy reportó vulnerabilidad en Tomcat embebido.
+**Detección:** Trivy reportó vulnerabilidades en Tomcat embebido en versiones anteriores de la rama 9.0.x.
 
-**Confirmación:** `dependency:tree` mostraba:
-
-| Artefacto | Versión |
-|---|---|
-| `tomcat-embed-core` | `9.0.41` |
-| `tomcat-embed-websocket` | `9.0.41` |
-
-**Decisión:** Subir la propiedad `tomcat.version` (cambio acotado en la rama 9.0.x) mediante override, en lugar de excluir Tomcat (no procede) o subir `spring-boot-starter-parent` (cambio más amplio).
-
-**Corrección aplicada:** en `pom.xml` (raíz), se forzó la versión corregida (sin bloque de código):
-
-- `&lt;properties&gt;`
-- `  &lt;tomcat.version&gt;9.0.99&lt;/tomcat.version&gt;`
-- `&lt;/properties&gt;`
-
-**Validación:**
-- `./mvnw verify` → OK  
-- `dependency:tree` → Tomcat `9.0.99`  
-- `trivy fs --scanners vuln .` → el hallazgo dejó de aparecer / installed `9.0.99`
-
----
-
-## Vulnerabilidad 2: Apache Tomcat embebido (dependencia vulnerable)
-
-**Detección:** Trivy reportó vulnerabilidad en Tomcat embebido.
-
-**Confirmación:** `dependency:tree` mostraba:
+**Confirmación:** Maven muestra que la aplicación usa Tomcat embebido a través de `spring-boot-starter-web` → `spring-boot-starter-tomcat`. Tras fijar la propiedad `tomcat.version`, el árbol de dependencias resuelto queda en:
 
 | Artefacto | Versión |
 |---|---|
-| `tomcat-embed-core` | `9.0.99` |
-| `tomcat-embed-websocket` | `9.0.99` |
+| `tomcat-embed-core` | `9.0.124` |
+| `tomcat-embed-websocket` | `9.0.124` |
 
-**Decisión:** Subir la propiedad `tomcat.version` (cambio acotado en la rama 9.0.x) mediante override, en lugar de excluir Tomcat (no procede) o subir `spring-boot-starter-parent` (cambio más amplio).
+**Decisión:** En lugar de seguir corrigiendo aviso a aviso (`9.0.99` → `9.0.106` → `9.0.107`), se fijó directamente la última versión estable de la rama 9.0.x. En Maven, esto no se documenta como un “override” al estilo npm, sino como el ajuste de la propiedad `tomcat.version` gestionada por el BOM de Spring Boot.
 
-**Corrección aplicada:** en `pom.xml` (raíz), se forzó la versión corregida (sin bloque de código):
+**Corrección aplicada:** en `pom.xml` (raíz), se fijó:
 
-- `&lt;properties&gt;`
-- `  &lt;tomcat.version&gt;9.0.106&lt;/tomcat.version&gt;`
-- `&lt;/properties&gt;`
-
-**Validación:**
-- `./mvnw verify` → OK  
-- `dependency:tree` → Tomcat `9.0.106`  
-- `trivy fs --scanners vuln .` → el hallazgo dejó de aparecer / installed `9.0.106`
-
----
-
-## Vulnerabilidad 3: Apache Tomcat embebido (dependencia vulnerable)
-
-**Detección:** Trivy reportó vulnerabilidad en Tomcat embebido.
-
-**Confirmación:** `dependency:tree` mostraba:
-
-| Artefacto | Versión |
-|---|---|
-| `tomcat-embed-core` | `9.0.106` |
-| `tomcat-embed-websocket` | `9.0.106` |
-
-**Decisión:** Subir la propiedad `tomcat.version` (cambio acotado en la rama 9.0.x) mediante override, en lugar de excluir Tomcat (no procede) o subir `spring-boot-starter-parent` (cambio más amplio).
-
-**Corrección aplicada:** en `pom.xml` (raíz), se forzó la versión corregida (sin bloque de código):
-
-- `&lt;properties&gt;`
-- `  &lt;tomcat.version&gt;9.0.107&lt;/tomcat.version&gt;`
-- `&lt;/properties&gt;`
+- `<properties>`
+- `  <tomcat.version>9.0.124</tomcat.version>`
+- `</properties>`
 
 **Validación:**
-- `./mvnw verify` → OK  
-- `dependency:tree` → Tomcat `9.0.107`  
-- `trivy fs --scanners vuln .` → el hallazgo dejó de aparecer / installed `9.0.107`
+- `mvn -q -DskipTests dependency:resolve` → OK
+- `mvn dependency:tree` → aparecen:
+  - `org.apache.tomcat.embed:tomcat-embed-core:jar:9.0.124:compile`
+  - `org.apache.tomcat.embed:tomcat-embed-websocket:jar:9.0.124:compile`
+- `trivy fs --scanners vuln --pkg-types library . | grep -i tomcat` → sin resultados (0 avisos de Tomcat)
+
+**Conclusión:** La solución final correcta es fijar `tomcat.version` a `9.0.124`, última estable de la rama 9.0.x, eliminando los avisos de Tomcat del escaneo y evitando dejar el análisis desactualizado con versiones intermedias.
 
 
 
@@ -144,16 +94,28 @@
 - `overrides` deja deuda y puede romper en ejecución; actualizar el origen es más mantenible.
 
 
-**Aviso elegido (transitiva):** `zod` (GHSA-mrhx-c7xc-m3w5, `zod@3.25.76`)
+**Aviso elegido (transitiva):** GHSA-mrhx-c7xc-m3w5 (zod@3.25.76)
 
-**Quién la trae (npm ls):**
-- `juice-shop -> web3@4.16.0 -> web3-validator@2.0.6 -> zod@3.25.76`
+**Quién la trae (npm ls):** 
+- `juice-shop` → `web3@4.16.0` → `web3-validator@2.0.6` → `zod@3.25.76`
 
-**Corrección elegida (regla del proyecto):** corregir en el origen
-- En vez de usar `overrides` para forzar `zod`, actualizar la dependencia directa que lo introduce (**`web3`** y/o **`web3-validator`**) a una versión que ya use `zod >= 4.6.6`.
+**Comprobación upstream (npm view):** 
+- `web3-validator` latest es 2.0.6 y depende de `zod: ^3.21.4` (Zod 3), por lo que no hay corrección en el origen mediante actualización normal a Zod 4.
 
-**Por qué:**
-- Evita forzar versiones con `overrides`.
+**Corrección elegida:** 
+- Override documentado como excepción, forzando `zod >= 4.6.6` en package.json.
+
+**Por qué:** 
+- No existe versión upstream compatible con Zod 4; el override es temporal, se documenta como deuda técnica y requiere validación continua.
+
+**Comandos para regenerar lockfile y validar:**
+
+```powershell
+Remove-Item -Force package-lock.json
+npm install --package-lock-only --ignore-scripts
+npm audit
+trivy fs --scanners vuln . > con-lockfile-after.txt
+```
 
 
 ## Lab 3 — SAST sobre WebGoat 
@@ -165,14 +127,3 @@
 | 3 | java.spring.security.injection.tainted-url-host.tainted-url-host | src/main/java/org/owasp/webgoat/lessons/jwt/claimmisuse/JWTHeaderJKUEndpoint.java | ERROR | Código que no se despliega (demo/lesson) | Está en `lessons/jwt/...` y forma parte de un ejercicio didáctico, no de una funcionalidad “productiva”. |
 | 4 | java.lang.security.audit.formatted-sql-string.formatted-sql-string | src/main/java/org/owasp/webgoat/lessons/sqlinjection/introduction/SqlInjectionLesson8.java | ERROR | Código que no se despliega (demo/lesson) | Está en `lessons/sqlinjection/...` y el objetivo del proyecto es mostrar SQLi de forma intencionada. |
 | 5 | yaml.github-actions.security.github-actions-mutable-action-tag.github-actions-mutable-action-tag | .github/workflows/release.yml | WARNING | Real | Mismo problema: acción referenciada por tag mutable; fijar a SHA reduce el riesgo de cambios maliciosos. |
-
-
-
-
-
-
-
-
-
-
-
